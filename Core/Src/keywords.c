@@ -42,10 +42,12 @@ int TinyKw_ProcessFrame(const int16_t *audio_frame, int size)
 {
 	assert(size == TKW_AUDIO_FRAME_SIZE);
 
+	/* Process the frame */
 	tkw_status status;
     status = tkw_process_frame(audio_frame, size, &tinykw_ctx); // process one frame
     assert(status == TKW_OK);
 
+    /* Check if any keyword is detected */
     for (int i = 0; i < NB_KEYWORDS; ++i)
     {
         uint32_t is_detected = 0;
