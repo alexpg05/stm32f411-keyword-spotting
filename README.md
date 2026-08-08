@@ -1,0 +1,49 @@
+# STM32f411 Voice interation
+
+Demonstration of voice commands on NUCLEO-STM32f411RE board using STM32's audio package and TinyKW library.
+
+## Project Description
+
+A NUCLEO-STM32f411RE board is connected to the IMP34DT05 digital microphone sitting on the X-NUCLEO-IKS02A1 expansion board.
+PDM data is accessed by the MCU using SPI/I2S protocol and DMA for memory transfer. 
+PDM data in memory is converted to PCM data using STM32's pdm2pcm library.
+PCM data is processed to detect keywords using TinyKW library.
+
+## Hardware setup
+
+![](docs/hardware.jpeg)
+
+- PA7 -> R 220 -> cathode Green LED -> +3V3
+- PB6 -> R 220 -> cathode Red LED -> +3V3
+- PC7 -> R 220 -> cathode Yellow LED -> +3V3
+
+With this setup, setting an output pin will turn off the LED, while resetting the pin will turn it on.
+
+## Software setup
+
+1. Install TinykW:
+    - Download and unzip the release file of TinykW for cortex-m4 from the release page.
+    - Rename the output folder as `Libs`, and place it at the root fo this directory.
+2. (should be automatic) Install PDM2PCM:
+    - PDM2PCM is part of the STM32CubeF4 MCU Package and should normally be automatically downloaded and included into the project when the `Generate Code` function is triggered on STM32CubeMX.
+    - If that's not the case, a manual download and installation can be attempted. See https://www.st.com/en/embedded-software/stm32cubef4.html.
+3. Generate the code:
+    - Open STM32CubeMX and load the project stm32f411-voice-interaction.ioc.
+    - Click on `Generate Code` to generate the code.
+    - Verify that the folders Drivers, Middlewares (with PDM library in it) and PDM2PCM were created at the root of this directory.
+4. Build and run:
+    - Open STM32CubeIDE and import this directory as a project. Try building the project and running it with the nucleo board connected.
+
+## Using another language
+
+By default, the English version of TinyKW is included. To use a different language, the path of the library needs to be modified. This can be done as follows;
+- In STM32CubeIDE, Select the project, then `File` > `Properties` > `C/C++ Build` > `Settings` > `MCU/MPU GCC Linker` > `Include Path`
+- Modify the path `./Libs/lib/en` into `./Libs/lib/<language>`. Possible values for `<language>` are `en`, `fr`, `de`, `es`, `it`, `pt`, `zh`, `ja`.
+
+## Using other keywords
+
+To use other keywords, their byte representation needs to be retrieved from the TinyKW web console and paste into the file [keywords.c](Core/Src/keywords.c). The preprocessor macro `NB_KEYWORDS` in [keywords.h](Core/Src/keywords.c) might also need to be adapted to reflect the new number of keywords. Byte representation of keywords must match the language used. The detection threshold can also be adapated using the `DETECTION_THRESHOLD`. Please refer to TinyKW documentation for more details.
+
+## License
+
+The code in this repository is licensed under MIT. STM32's PDM2PCM library and TinyKW are not bundled and remain subject to their own license.
