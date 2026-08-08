@@ -1,13 +1,16 @@
-# STM32f411 Voice interation
-
-Demonstration of voice commands on NUCLEO-STM32f411RE board using STM32's audio package and TinyKW library.
+# STM32f411 Voice interaction
 
 ## Project Description
 
-A NUCLEO-STM32f411RE board is connected to the IMP34DT05 digital microphone sitting on the X-NUCLEO-IKS02A1 expansion board.
-PDM data is accessed by the MCU using SPI/I2S protocol and DMA for memory transfer. 
+This project demonstrates voice interaction on the NUCLEO-STM32f411RE board using STM32's audio package and TinyKW library.
+The NUCLEO board is connected to the IMP34DT05 digital microphone sitting on a X-NUCLEO-IKS02A1 expansion board.
+PDM data is accessed by the MCU using SPI/I2S protocol and DMA is used for memory transfer. 
 PDM data in memory is converted to PCM data using STM32's pdm2pcm library.
 PCM data is processed to detect keywords using TinyKW library.
+
+## Demo
+
+https://github.com/user-attachments/assets/4fa679fd-4fd8-4727-9687-660d7c79d8c7
 
 ## Hardware setup
 
