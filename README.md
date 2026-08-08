@@ -3,10 +3,10 @@
 ## Project Description
 
 This project demonstrates voice interaction on the NUCLEO-STM32f411RE board using STM32's audio package and TinyKW library.
-The NUCLEO board is connected to the IMP34DT05 digital microphone sitting on a X-NUCLEO-IKS02A1 expansion board.
-PDM data is accessed by the MCU using SPI/I2S protocol and DMA is used for memory transfer. 
-PDM data in memory is converted to PCM data using STM32's pdm2pcm library.
-PCM data is processed to detect keywords using TinyKW library.
+The NUCLEO board is connected to the IMP34DT05 digital microphone located on a X-NUCLEO-IKS02A1 expansion board.
+The MCU accesses the PDM data via the SPI/I2S protocol and DMA saves it to a buffer in SRAM. 
+Once the half-buffer interrupt triggers, the PDM data is converted to PCM using STM32's PDM2PCM library.
+PCM data is then processed to detect keywords using TinyKW library.
 
 ## Demo
 
