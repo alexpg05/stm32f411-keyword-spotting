@@ -25,8 +25,8 @@ With this setup, setting an output pin will turn off the LED, while resetting th
 ## Software setup
 
 1. Install TinykW:
-    - Download and unzip the release file of TinykW for cortex-m4 from the release page.
-    - Rename the output folder as `Libs`, and place it at the root fo this directory.
+    - Download and unzip the release file of TinykW for cortex-m4 from the [release page](https://github.com/voyelle-io/tinykw/releases).
+    - Rename the output folder as `Libs`, and place it at the root of this directory.
 2. (should be automatic) Install PDM2PCM:
     - PDM2PCM is part of the STM32CubeF4 MCU Package and should normally be automatically downloaded and included into the project when the `Generate Code` function is triggered on STM32CubeMX.
     - If that's not the case, a manual download and installation can be attempted. See https://www.st.com/en/embedded-software/stm32cubef4.html.
@@ -45,7 +45,7 @@ By default, the English version of TinyKW is included. To use a different langua
 
 ## Using other keywords
 
-To use other keywords, their byte representation needs to be retrieved from the TinyKW web console and paste into the file [keywords.c](Core/Src/keywords.c). The preprocessor macro `NB_KEYWORDS` in [keywords.h](Core/Src/keywords.c) might also need to be adapted to reflect the new number of keywords. Byte representation of keywords must match the language used. The detection threshold can also be adapated using the `DETECTION_THRESHOLD`. Please refer to TinyKW documentation for more details.
+To use other keywords, their byte representations needs to be retrieved from the TinyKW web console and paste into the file [keywords.c](Core/Src/keywords.c). The preprocessor macro `NB_KEYWORDS` in [keywords.h](Core/Src/keywords.c) might also need to be adapted to reflect the new number of keywords. Byte representation of keywords must match the language used. Optionally, the detection threshold can be adapated using the preprocessor macro `DETECTION_THRESHOLD`. Please refer to TinyKW documentation for more details.
 
 ## License
 
