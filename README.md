@@ -49,4 +49,4 @@ To use other keywords, their byte representations needs to be retrieved from the
 
 ## License
 
-The code in this repository is licensed under MIT. STM32's PDM2PCM library and TinyKW are not bundled and remain subject to their own license.
+The code in this repository is licensed under MIT. STM32CubeMX's generated code, STM32's PDM2PCM library and TinyKW are not bundled and remain subject to their own license.
