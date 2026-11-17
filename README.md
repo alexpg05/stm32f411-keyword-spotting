@@ -25,7 +25,7 @@ In this setup, setting an output pin HIGH will turns the LED off, and setting it
 ## Software setup
 
 1. Install TinykW:
-    - Download and unzip the release file of TinykW for cortex-m4 from the [release page](https://github.com/voyelle-io/tinykw/releases).
+    - Download and unzip the release file of TinykW for cortex-m4 from the [release page](https://github.com/alexpg05/tinykw/releases).
     - Rename the output folder to `Libs`, and place it at the root of this directory.
 2. (should be automatic) Install PDM2PCM:
     - PDM2PCM is part of the STM32CubeF4 MCU Package and should normally be automatically downloaded and included into the project when the `Generate Code` function is triggered on STM32CubeMX.
@@ -39,7 +39,7 @@ In this setup, setting an output pin HIGH will turns the LED off, and setting it
 
 ## Using another language
 
-By default, the English version of TinyKW is included. To use a different language, the path of the library needs to be modified. This can be done as follows;
+By default, the English version of TinyKW library is included. To use a different language, the path of the library needs to be modified. This can be done as follows;
 - In STM32CubeIDE, Select the project, then `File` > `Properties` > `C/C++ Build` > `Settings` > `MCU/MPU GCC Linker` > `Include Path`
 - Modify the path `./Libs/lib/en` into `./Libs/lib/<language>`. Possible values for `<language>` are `en`, `fr`, `de`, `es`, `it`, `pt`, `zh`, `ja`.
 

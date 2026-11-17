@@ -23,8 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "lights.h"
-#include "keywords.h"
+#include "tinykw_app.h"
+#include "leds.h"
 
 /* USER CODE END Includes */
 
@@ -37,7 +37,8 @@
 /* USER CODE BEGIN PD */
 #define PCM_BUFFER_SIZE (480) // Same than TKW_AUDIO_FRAME_SIZE
 #define PDM_DECIMATION_FACTOR (128)
-#define PDM_BUFFER_SIZE (2 * PDM_DECIMATION_FACTOR * PCM_BUFFER_SIZE / 16) // since pdm buffer is uint16
+#define PDM_BUFFER_SIZE (PDM_DECIMATION_FACTOR * PCM_BUFFER_SIZE / 16) // PDM buffer is uint16
+#define DMA_BUFFER_SIZE (2 * PDM_BUFFER_SIZE) // Twice the size of the PDM buffer
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,11 +55,11 @@ DMA_HandleTypeDef hdma_spi1_rx;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-volatile int dma_new_data = 0;
-volatile int dma_is_first_half = 0;
-uint16_t pdm_buff[PDM_BUFFER_SIZE];
+uint8_t rxInProgress = 0;
+uint16_t dma_buffer[DMA_BUFFER_SIZE];
+volatile uint8_t new_data_ready = 0;
+uint16_t* pdm_buffer;
 int16_t pcm_buffer[PCM_BUFFER_SIZE];
-extern PDM_Filter_Handler_t PDM1_filter_handler;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,7 +70,8 @@ static void MX_I2S1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
-
+void keyword_detection_callback(uint32_t idx_keyword);
+void startReceiveDMA();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -112,11 +114,8 @@ int main(void)
   MX_CRC_Init();
   MX_PDM2PCM_Init();
   /* USER CODE BEGIN 2 */
-  HAL_I2S_Receive_DMA(&hi2s1, (uint16_t *)pdm_buff, PDM_BUFFER_SIZE);
-  TinyKw_Init();
-  printf("TinyKw is initialized\r\n"); fflush(stdout);
-  LightState keyword_light_mapping[NB_KEYWORDS] = {OFF, YELLOW, RED, GREEN, BLINK_SLOW, BLINK_FAST, CONTINUOUS};
-  LightState current_state = OFF;
+  TinyKw_Init(keyword_detection_callback);
+  startReceiveDMA();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,26 +125,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	if (dma_new_data == 1)
+	if (new_data_ready == 1)
 	{
-		dma_new_data = 0;
-		uint16_t* pdm_data = dma_is_first_half ? pdm_buff : &(pdm_buff[PDM_BUFFER_SIZE / 2]);
-
-		int error = PDM_Filter(pdm_data, pcm_buffer, &PDM1_filter_handler);
-        if (error)
-            printf("PDM_Filter failed with err code %d\r\n", error);
-
-        int detected_keyword_idx = TinyKw_ProcessFrame(pcm_buffer, PCM_BUFFER_SIZE);
-        if (detected_keyword_idx >= 0)
-        {
-        	printf("Detection: %d\r\n", detected_keyword_idx); fflush(stdout);
-        	current_state = keyword_light_mapping[detected_keyword_idx];
-        }
-
-        update_lights(current_state);
-
-        // (for debug purposes) send the audio through USART
-        //HAL_UART_Transmit_IT(&huart2, (uint8_t*)&pcm_buffer[0], PCM_BUFFER_SIZE * sizeof(int16_t));
+		new_data_ready = 0;
+		if (PDM_Filter(pdm_buffer, pcm_buffer, &PDM1_filter_handler) != 0) while(1);
+		TinyKw_ProcessFrame(pcm_buffer, PCM_BUFFER_SIZE);
+        if (new_data_ready == 1) while(1); // processing of the frame took too long
 	}
   }
   /* USER CODE END 3 */
@@ -370,23 +355,77 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-// Replaces the HTIF0 (Half-Transfer) block
+
+void keyword_detection_callback(uint32_t idx_keyword)
+{
+	printf("Keyword detected %d", (int)idx_keyword);
+	switch(idx_keyword)
+	{
+		case 0:
+			YellowLED.On();
+			RedLED.Off();
+			GreenLED.Off();
+			break;
+		case 1:
+			YellowLED.Off();
+			RedLED.On();
+			GreenLED.Off();
+			break;
+		case 2:
+			YellowLED.Off();
+			RedLED.Off();
+			GreenLED.On();
+			break;
+		case 3:
+			YellowLED.On();
+			RedLED.On();
+			GreenLED.Off();
+			break;
+		case 4:
+			YellowLED.Off();
+			RedLED.On();
+			GreenLED.On();
+			break;
+		case 5:
+			YellowLED.On();
+			RedLED.Off();
+			GreenLED.On();
+			break;
+		case 6:
+			YellowLED.On();
+			RedLED.On();
+			GreenLED.On();
+			break;
+		default:
+			YellowLED.Off();
+			RedLED.Off();
+			GreenLED.Off();
+			break;
+	}
+}
+
+
+void startReceiveDMA()
+{
+	rxInProgress = 1;
+	HAL_I2S_Receive_DMA(&hi2s1, (uint16_t *)dma_buffer, DMA_BUFFER_SIZE);
+}
+
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-  if (hi2s->Instance == SPI1)
+  if ((hi2s->Instance == SPI1) && (rxInProgress == 1))
   {
-    dma_new_data = 1;
-    dma_is_first_half = 1;
+    pdm_buffer = dma_buffer;
+    new_data_ready = 1;
   }
 }
 
-// Replaces the TCIF0 (Transfer-Complete) block
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-  if (hi2s->Instance == SPI1)
+  if ((hi2s->Instance == SPI1) && (rxInProgress == 1))
   {
-    dma_new_data = 1;
-    dma_is_first_half = 0;
+	pdm_buffer = &(dma_buffer[DMA_BUFFER_SIZE / 2]);
+	new_data_ready = 1;
   }
 }
 
