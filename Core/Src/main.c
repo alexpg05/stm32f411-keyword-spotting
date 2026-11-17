@@ -130,7 +130,7 @@ int main(void)
 		new_data_ready = 0;
 		if (PDM_Filter(pdm_buffer, pcm_buffer, &PDM1_filter_handler) != 0) while(1);
 		TinyKw_ProcessFrame(pcm_buffer, PCM_BUFFER_SIZE);
-        if (new_data_ready == 1) while(1); // processing of the frame took too long
+    if (new_data_ready == 1) while(1); // processing of the frame took too long
 	}
   }
   /* USER CODE END 3 */
