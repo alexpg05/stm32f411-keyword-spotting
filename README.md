@@ -20,33 +20,28 @@ https://github.com/user-attachments/assets/4fa679fd-4fd8-4727-9687-660d7c79d8c7
 - PB6 -> R 220 -> cathode Red LED -> +3V3
 - PC7 -> R 220 -> cathode Yellow LED -> +3V3
 
-In this setup, setting an output pin HIGH will turns the LED off, and setting it LOW turns the LED on.
+In this setup, setting an output pin HIGH turns the LED off, and setting it LOW turns the LED on.
 
 ## Software setup
 
-1. Install TinykW:
-    - Download and unzip the release file of TinykW for cortex-m4 from the [release page](https://github.com/alexpg05/tinykw/releases).
-    - Rename the output folder to `Libs`, and place it at the root of this directory.
-2. (should be automatic) Install PDM2PCM:
-    - PDM2PCM is part of the STM32CubeF4 MCU Package and should normally be automatically downloaded and included into the project when the `Generate Code` function is triggered on STM32CubeMX.
-    - If that's not the case, a manual download and installation can be attempted. See https://www.st.com/en/embedded-software/stm32cubef4.html.
-3. Generate the code:
+1. Generate the code:
     - Open STM32CubeMX and load the project stm32f411-voice-interaction.ioc.
     - Click on `Generate Code` to generate the code.
     - Verify that the folders Drivers, Middlewares (with PDM library in it) and PDM2PCM were created at the root of this directory.
-4. Build and run:
+2. Build and run:
     - Open STM32CubeIDE and import this directory as a project. Try building the project and running it with the nucleo board connected.
 
 ## Using another language
 
-By default, the English version of TinyKW library is included. To use a different language, the path of the library needs to be modified. This can be done as follows;
+TinyKW is included in `Libs/tinykw` for all supported languages, and the English version is used by default. To use a different language, the path of the library needs to be modified. This can be done as follows;
 - In STM32CubeIDE, Select the project, then `File` > `Properties` > `C/C++ Build` > `Settings` > `MCU/MPU GCC Linker` > `Include Path`
-- Modify the path `./Libs/lib/en` into `./Libs/lib/<language>`. Possible values for `<language>` are `en`, `fr`, `de`, `es`, `it`, `pt`, `zh`, `ja`.
+- Modify the path `../Libs/tinykw/lib/en` into `../Libs/tinykw/lib/<language>`. Possible values for `<language>` are `en`, `fr`, `de`, `es`, `it`, `pt`, `zh` and `ja`.
 
 ## Using other keywords
 
-To use other keywords, their byte representations needs to be retrieved from the TinyKW web console and pasted into the file [keywords.c](Core/Src/keywords.c). The preprocessor macro `NB_KEYWORDS` in [keywords.h](Core/Src/keywords.c) might also need to be adapted to reflect the new number of keywords. Byte representation of keywords must match the language used. If necessary, the detection threshold can be adapated using the preprocessor macro `DETECTION_THRESHOLD`. Please refer to TinyKW documentation for more details.
+To use other keywords, their byte representations need to be retrieved from the [TinyKW Console](https://voyelle.io/tinykw/encoder) and pasted into [keywords_encodings.c](Core/Src/keywords_encodings.c). Byte representation of keywords must match the language used. If necessary, the detection threshold can be adapted using the preprocessor macro `DETECTION_THRESHOLD` in [main.c](Core/Src/main.c). Please refer to TinyKW documentation for more details.
 
 ## License
 
-The code in this repository is licensed under MIT. STM32CubeMX's generated code, STM32's PDM2PCM library and TinyKW are not bundled and remain subject to their own license.
+The code in this repository is licensed under MIT. TinyKW is distributed as a prebuilt library under the Apache 2.0 license (see `Libs/tinykw/LICENSE`).
+STM32CubeMX's generated code and STM32's PDM2PCM library are not bundled and remain subject to their own license.

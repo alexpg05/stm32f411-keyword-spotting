@@ -22,8 +22,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <assert.h>
 #include <stdio.h>
-#include "tinykw_app.h"
+#include "tinykw.h"
+#include "keywords_encodings.h"
 #include "leds.h"
 
 /* USER CODE END Includes */
@@ -35,7 +37,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define PCM_BUFFER_SIZE (480) // Same than TKW_AUDIO_FRAME_SIZE
+#define DETECTION_THRESHOLD (128) // 0-255: higher means fewer false positives but more missed detections
+#define PCM_BUFFER_SIZE (TKW_AUDIO_FRAME_SIZE) // TinyKW processes frames of 480 samples (30 ms at 16 kHz)
 #define PDM_DECIMATION_FACTOR (128)
 #define PDM_BUFFER_SIZE (PDM_DECIMATION_FACTOR * PCM_BUFFER_SIZE / 16) // PDM buffer is uint16
 #define DMA_BUFFER_SIZE (2 * PDM_BUFFER_SIZE) // Twice the size of the PDM buffer
@@ -60,6 +63,10 @@ uint16_t dma_buffer[DMA_BUFFER_SIZE];
 volatile uint8_t new_data_ready = 0;
 uint16_t* pdm_buffer;
 int16_t pcm_buffer[PCM_BUFFER_SIZE];
+
+static tkw_context tinykw_ctx;
+static uint8_t keyword_ids[NB_KEYWORDS]; // ids returned by tkw_add_keyword(), in the order of keywords_encodings
+static const char *keyword_names[NB_KEYWORDS] = {"yellow", "red", "green", "blink slow", "blink fast", "stop", "continuous"};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,7 +77,7 @@ static void MX_I2S1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
-void keyword_detection_callback(uint32_t idx_keyword);
+static void on_keyword_detected(uint8_t keyword_id, void *user_ctx);
 void startReceiveDMA();
 /* USER CODE END PFP */
 
@@ -114,7 +121,17 @@ int main(void)
   MX_CRC_Init();
   MX_PDM2PCM_Init();
   /* USER CODE BEGIN 2 */
-  TinyKw_Init(keyword_detection_callback);
+  /* Initialize TinyKW, register the detection callback and add the keywords */
+  tkw_status status = tkw_init(&tinykw_ctx);
+  assert(status == TKW_OK);
+  status = tkw_set_callback(on_keyword_detected, NULL, &tinykw_ctx);
+  assert(status == TKW_OK);
+  for (int k = 0; k < NB_KEYWORDS; ++k)
+  {
+    status = tkw_add_keyword(keywords_encodings[k], DETECTION_THRESHOLD, &keyword_ids[k], &tinykw_ctx);
+    assert(status == TKW_OK);
+  }
+
   startReceiveDMA();
   /* USER CODE END 2 */
 
@@ -129,7 +146,7 @@ int main(void)
 	{
 		new_data_ready = 0;
 		if (PDM_Filter(pdm_buffer, pcm_buffer, &PDM1_filter_handler) != 0) while(1);
-		TinyKw_ProcessFrame(pcm_buffer, PCM_BUFFER_SIZE);
+		tkw_process_frame(pcm_buffer, PCM_BUFFER_SIZE, &tinykw_ctx); // calls on_keyword_detected() on detection
     if (new_data_ready == 1) while(1); // processing of the frame took too long
 	}
   }
@@ -356,10 +373,19 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void keyword_detection_callback(uint32_t idx_keyword)
+/*
+ * Called by TinyKW from within tkw_process_frame() when a keyword is detected.
+ * keyword_id is the id returned by tkw_add_keyword(): look up which keyword it is.
+ */
+static void on_keyword_detected(uint8_t keyword_id, void *user_ctx)
 {
-	printf("Keyword detected %d", (int)idx_keyword);
-	switch(idx_keyword)
+	(void)user_ctx;
+	int k = 0;
+	while (k < NB_KEYWORDS && keyword_ids[k] != keyword_id) k++;
+	if (k == NB_KEYWORDS) return;
+
+	printf("Keyword detected: %s\n", keyword_names[k]);
+	switch(k)
 	{
 		case 0:
 			YellowLED.On();
