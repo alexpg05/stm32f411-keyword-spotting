@@ -1,8 +1,8 @@
-# STM32f411 Voice interaction
+# STM32F411 Keyword Spotting
 
 ## Project Description
 
-This project demonstrates voice interaction on the NUCLEO-STM32f411RE board using STM32's audio package and TinyKW library.
+This project demonstrates keyword spotting on the NUCLEO-F411RE board using STM32's audio package and TinyKW library.
 The NUCLEO board is connected to the IMP34DT05 digital microphone located on a X-NUCLEO-IKS02A1 expansion board.
 The MCU accesses the PDM data via the SPI/I2S protocol and DMA saves it to a buffer in SRAM. 
 Once the half-buffer interrupt triggers, the PDM data is converted to PCM using STM32's PDM2PCM library.
